@@ -6,19 +6,29 @@ namespace StateMachine.Actions
     [CreateAssetMenu(menuName = "State Machine/Actions/Move", fileName = "MoveAction")]
     public class MoveAction : Action
     {
+        public override void Ready(object context)
+        {
+            if (context is Character character)
+            {
+                if (character.ShouldFlip())
+                {
+                    character.Flip();
+                }
+            }
+        }
+
         public override void Execute(object context)
         {
-            if (context is PlayerCharacter playerCharacter)
+            if (context is Character character)
             {
-                var velocity = new Vector2(playerCharacter.MoveInput.x * playerCharacter.Speed, 0.0f);
-                playerCharacter.Rigidbody.linearVelocity = velocity;
-
-                var shouldFlip = (playerCharacter.FacingDirection > 0 && playerCharacter.MoveInput.x < 0)
-                                 || (playerCharacter.FacingDirection < 0 && playerCharacter.MoveInput.x > 0);
-                if (shouldFlip)
-                {
-                    playerCharacter.Flip();
-                }
+                Vector2 currentVelocity = character.Velocity;
+                currentVelocity.x += character.Acceleration.x * Time.deltaTime;
+                currentVelocity.x = Mathf.Clamp(
+                    currentVelocity.x,
+                    -character.MaxMoveSpeed,
+                    character.MaxMoveSpeed
+                );
+                character.Velocity = currentVelocity;
             }
         }
     }

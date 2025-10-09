@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Characters
 {
@@ -12,6 +13,7 @@ namespace Characters
         protected override void Awake()
         {
             base.Awake();
+            
             controls = new PlayerControls();
         }
 
@@ -23,8 +25,11 @@ namespace Characters
         protected override void Update()
         {
             base.Update();
-
+            
             moveInput = controls.Player.Move.ReadValue<Vector2>();
+            
+            Vector2 nextAcceleration = moveInput * MaxAcceleration;
+            Acceleration = Vector2.MoveTowards(Acceleration, nextAcceleration, 128.0f * Time.deltaTime);
         }
 
         private void OnDisable()
