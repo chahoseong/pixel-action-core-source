@@ -1,29 +1,44 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace StateMachine
 {
-    public class StateController : MonoBehaviour
+    public class StateController
     {
-        [SerializeField] private State initState;
-        [SerializeField, ReadOnly] private State currentState;
+        private Dictionary<System.Type, IState> states = new();
+        private IState currentState;
+        private bool hasTransition;
+        
+        public IState CurrentState => currentState;
 
-        public object Context { get; set; }
-
-        private void Start()
+        public void Update(float deltaTime)
         {
-            ChangeState(initState);
+            hasTransition = false;
+            currentState?.Update(deltaTime);
         }
 
-        private void LateUpdate()
+        public void AddState<T>(T state) where T : IState
         {
-            currentState?.Tick(this);
+            states.Add(typeof(T), state);
         }
 
-        public void ChangeState(State nextState)
+        public T GetState<T>() where T : IState
         {
-            currentState?.Exit(this);
-            nextState?.Enter(this);
+            states.TryGetValue(typeof(T), out var state);
+            return (T)state;
+        }
+
+        public void ChangeState<T>() where T : IState
+        {
+            if (hasTransition)
+            {
+                return;
+            }
+            currentState?.Exit();
+            states.TryGetValue(typeof(T), out var nextState);
+            nextState?.Enter();
             currentState = nextState;
+            hasTransition = currentState != null;
         }
     }
 }
